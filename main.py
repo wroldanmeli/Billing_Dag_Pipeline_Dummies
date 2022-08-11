@@ -15,7 +15,7 @@ from billing_dag_dummies.utils import (
 )
 location=LOCATION
 log_dag = start_logging()
-log_dag.warning('DUMMIES Pipeline Starting' )
+log_dag.warning('DUMMIES Pipeline Starting HOYWILSON' )
 
 try:
     from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator

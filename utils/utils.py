@@ -41,8 +41,8 @@ def get_logger(logger_name :str):
 def start_logging():
     global cf_logger 
     try:
-        cf_logger = get_logger("Airflow Produccion")
-        cf_logger.info("Statrting Instance DAG Dummies")
+        cf_logger = get_logger("airflow")
+        cf_logger.info("Starting Instance DAG Dummies")
         return cf_logger
     except Exception as e: 
         print(str(e))    
