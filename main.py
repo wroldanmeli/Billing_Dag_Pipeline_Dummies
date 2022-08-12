@@ -1,22 +1,26 @@
-import csv
+import csv, os
 import datetime
 from datetime import datetime
 import io
 import logging
-
+from os import path
 import airflow
 from airflow import DAG
 from airflow import models
+import pathlib
 
 from billing_dag_dummies.utils import (
-    GCP_PROJECT,
+    PROJECT_ID,
     LOCATION,
-    start_logging
+    start_logging,
+    load_queries
 )
 location=LOCATION
 log_dag = start_logging()
-log_dag.warning('DUMMIES Pipeline Starting HOYWILSON' )
+log_dag.warning('DUMMIES Pipeline Starting' )
 
+BASE_DIR = pathlib.Path(__file__).parent.resolve()
+QUERIES = load_queries(path.join(BASE_DIR, 'resources', 'queries'))
 try:
     from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
     from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
@@ -32,24 +36,24 @@ with DAG(
         "depends_on_past": False,
         "email": ["wilson.roldan@mercadolibre.com.co"],
         "email_on_failure": True,
-        "email_on_retry": False
+        "email_on_retry": False,
+        "location": location,
+        "project_id": PROJECT_ID
     },
-    start_date=datetime(2022, 8, 9),
-    #schedule_interval='0 1 * * *',
     catchup=False,
     description='Trigguer Dummies Stored Procedure  00',
     tags=['dummies', 'pipeline', 'cloud billing']
 ) as dag: 
 
-   call_sp_dummies = BigQueryInsertJobOperator(
+    call_sp_dummies = BigQueryInsertJobOperator(
         task_id="call_sp_dummies",
         configuration={
-            "query": {
-                "query": "CALL `billing-data-migration.billing_wr_test.billing_fury_sp_00_main_dummy`(); ",
-                "useLegacySql": False,
-                }
-            },
-            location=location,
-    )
+            'query': {
+                'query': QUERIES['start_billing_dummies'],
+                'useLegacySql': False
+            }
+        },
+        location=location,
+    )      
 
 call_sp_dummies

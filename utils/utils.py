@@ -4,6 +4,9 @@ from logging import handlers
 from datetime import datetime, time 
 from datetime import date 
 from pytz import timezone, utc
+from os import path
+from billing_dag_dummies.utils.config import QUERIES_FILES, BIGQUERY_TABLE_CONFIG, PROJECT_ID , LOCATION
+from typing import Dict
 
 logger    = logging.getLogger(__name__)
 FORMATTER = logging.Formatter("%(asctime)s — %(funcName)20s() — %(levelname)s — %(message)s")
@@ -47,3 +50,18 @@ def start_logging():
     except Exception as e: 
         print(str(e))    
         return 
+
+def format_query(query: str):
+    for curr_tag, curr_value in BIGQUERY_TABLE_CONFIG.items():
+        query = query.replace(f'{{{curr_tag}}}', curr_value)
+    return query
+
+def load_queries(base_dir: str) -> Dict[str, str]:
+    output_queries = {}
+    for filename in QUERIES_FILES:
+        filepath = path.join(f'{base_dir}', f'{filename}.sql')
+        with open(filepath, 'r') as f:
+            query = f.read()
+            query = format_query(query)
+            output_queries[filename] = query       
+    return output_queries
